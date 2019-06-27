@@ -1,0 +1,11 @@
+include: package:pedantic/analysis_options.yaml
+
+analyzer:
+  exclude:
+    - lib/*.g.dart
+    - lib/*.gql.dart
+    - lib/**/*.g.dart
+    - lib/**/*.gql.dart
+    - lib/*.m.dart
+    - lib/**/*.m.dart
+    - lib/main.reflectable.dart

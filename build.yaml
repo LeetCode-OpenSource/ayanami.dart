@@ -1,0 +1,12 @@
+builders:
+  generate_module:
+    import: "package:ayanami/builder.dart"
+    builder_factories:
+      - moduleBuilder
+    build_extensions:
+      .module.dart: 
+        - .m.dart
+    build_to: source
+    auto_apply: "all_packages"
+    runs_before:
+      - reflectable

@@ -1,0 +1,24 @@
+name: ayanami
+description: State management with rxdart
+
+version: 0.0.1
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  build_runner: any
+
+  angel_container: ^1.0.4
+
+  angel_container_generator: ^1.0.1
+
+  rxdart: ^0.22.0
+
+  meta: ^1.1.6
+
+dev_dependencies:
+  source_gen: any
