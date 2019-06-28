@@ -10,6 +10,10 @@ import 'src/annotation.dart' as annotation;
 const ObservableTypeChecker = TypeChecker.fromRuntime(Observable);
 const ModuleAnnotationTypeChecker =
     TypeChecker.fromRuntime(annotation.ModuleAnnotation);
+const EpicAnnotationTypeChecker =
+    TypeChecker.fromRuntime(annotation.EpicAnnotation);
+const ActionAnnotationTypeChecker =
+    TypeChecker.fromRuntime(annotation.ActionAnnotation);
 
 Builder moduleBuilder(BuilderOptions options) {
   return LibraryBuilder(ModuleGenerator(), generatedExtension: '.m.dart');
@@ -28,6 +32,8 @@ class _Visitor extends GeneralizingElementVisitor {
   String result = '';
 
   String epics = '';
+
+  String actions = '';
 
   String classFieldName = '';
 
@@ -66,6 +72,7 @@ class ${className}Connector {
       result += '''
  
     ${className}Connector(this.$classFieldName) {
+      $actions;
       Observable.merge([$epics]).listen((_) {});
     }
 }
@@ -74,8 +81,37 @@ class ${className}Connector {
   }
 
   @override
+  void visitFieldElement(FieldElement element) {
+    if (element.metadata.any((m) => ActionAnnotationTypeChecker.isExactlyType(
+        m.computeConstantValue().type))) {
+      final name = element.name;
+      final fieldType = element.type;
+      if (ObservableTypeChecker.isExactlyType(fieldType)) {
+        String payloadType;
+        if (fieldType is ParameterizedType) {
+          final type = fieldType.typeArguments[0];
+          final typeString = '$type';
+          if (!type.isVoid && typeString != 'Null') {
+            payloadType = '$type';
+          }
+        } else {
+          payloadType = 'dynamic';
+        }
+        final methodCodes = payloadType == null
+            ? 'void $name() { $classFieldName.action\$.add(Action(\'$name\', null)); }'
+            : 'void $name($payloadType payload) { $classFieldName.action\$.add(Action(\'$name\', payload)); }';
+        result += '\n$methodCodes\n';
+
+        actions +=
+            '$classFieldName.$name = $classFieldName.action\$.where((action) => action.type == \'$name\')';
+      }
+    }
+  }
+
+  @override
   void visitMethodElement(MethodElement element) {
-    if (element.metadata.any((m) => m.element.name == 'epic')) {
+    if (element.metadata.any((m) => EpicAnnotationTypeChecker.isExactlyType(
+        m.computeConstantValue().type))) {
       final name = element.name;
       String payloadType;
       final action = element.parameters[0];
@@ -83,13 +119,14 @@ class ${className}Connector {
         final actionType = action.type;
         if (actionType is ParameterizedType) {
           final type = actionType.typeArguments[0];
-          if (!type.isVoid) {
+          final typeString = '$type';
+          if (!type.isVoid && typeString != 'Null') {
             payloadType = '$type';
           }
         } else {
           payloadType = 'dynamic';
         }
-        final methodCodes = payloadType == null || payloadType == 'Null'
+        final methodCodes = payloadType == null
             ? 'void $name () { $classFieldName.action\$.add(Action(\'$name\', null)); }'
             : 'void $name ($payloadType payload) { $classFieldName.action\$.add(Action(\'$name\', payload)); }';
         result += methodCodes;

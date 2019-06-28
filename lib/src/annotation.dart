@@ -5,3 +5,7 @@ class ModuleAnnotation {
 class EpicAnnotation {
   const EpicAnnotation();
 }
+
+class ActionAnnotation {
+  const ActionAnnotation();
+}

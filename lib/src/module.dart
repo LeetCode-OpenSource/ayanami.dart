@@ -1,7 +1,6 @@
 import 'package:angel_container_generator/angel_container_generator.dart';
 import 'package:angel_container/angel_container.dart' as angel_container;
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 import 'package:rxdart/rxdart.dart';
 import 'action.dart';
 
@@ -26,10 +25,8 @@ abstract class Module<S> {
 
   S get state;
 
-  @protected
   final Subject<Action> action$ = PublishSubject();
 
-  @protected
   final Subject<Action> state$ = PublishSubject();
 
   State _appState;
@@ -40,7 +37,7 @@ abstract class Module<S> {
     return state;
   }
 
-  Future<void> dispose() async {
+  Future<Null> dispose() async {
     await action$.close();
     await state$.close();
   }
