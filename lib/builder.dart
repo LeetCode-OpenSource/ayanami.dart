@@ -42,42 +42,32 @@ class _Visitor extends GeneralizingElementVisitor {
       classFieldName =
           '_${className[0].toLowerCase()}${className.substring(1)}';
       result += '''
-import 'package:angel_container_generator/angel_container_generator.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:flutter/widgets.dart';
 import 'package:ayanami/ayanami.dart';
+import 'package:flutter/widgets.dart';
 import 'package:$stateTypeImportPath';
 import '${element.source.uri.pathSegments.last}';
+export '${element.source.uri.pathSegments.last}';
 
-@contained
-class ${className}Dispatcher {
+class ${className}Connector {
+  static State<W> createAppState<W extends StatefulWidget>(
+      State<W> Function(${className}Connector connector) builder) {
+    return Module.createAppState<W, $className>((state) => builder(${className}Connector(state)));
+  }
+
   final $className $classFieldName;
 
-  $className get ${classFieldName.substring(1)} {
-    return $classFieldName;
+  $stateType useState() {
+    return $classFieldName.state;
   }
 
       ''';
       element.visitChildren(this);
       result += '''
  
-    ${className}Dispatcher(this.$classFieldName) {
+    ${className}Connector(this.$classFieldName) {
       Observable.merge([$epics]).listen((_) {});
     }
-}
-
-@contained
-class ${className}Widget extends StatefulWidget {
-  ${className}Widget(this.dispatcher);
-
-  final ${className}Dispatcher dispatcher;
-
-  @override
-  HomeState createState() {
-    final state = HomeState(dispatcher);
-    dispatcher.homeModule.state = state;
-    return state;
-  }
 }
       ''';
     }
