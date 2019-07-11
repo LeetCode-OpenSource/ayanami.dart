@@ -18,12 +18,12 @@ class TestModule {
 
   TestModule registerSingleton<T>({void Function(T instance) getter}) {
     final registered = _container.has(T);
-    final T instance = _container.make(T);
+
     if (!registered) {
-      _container.registerSingleton(instance);
+      _container.registerSingleton(_container.make(T));
     }
     if (getter != null) {
-      getter(instance);
+      getter(_container.make(T));
     }
     return this;
   }
