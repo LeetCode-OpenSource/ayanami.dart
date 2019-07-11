@@ -22,13 +22,15 @@ Builder moduleBuilder(BuilderOptions options) {
 class ModuleGenerator extends Generator {
   @override
   String generate(LibraryReader library, BuildStep buildStep) {
-    final visitor = _Visitor();
+    final visitor = _Visitor(library);
     library.element.visitChildren(visitor);
     return visitor.result;
   }
 }
 
 class _Visitor extends GeneralizingElementVisitor {
+  _Visitor(this.library);
+
   String result = '';
 
   String epics = '';
@@ -36,6 +38,8 @@ class _Visitor extends GeneralizingElementVisitor {
   String actions = '';
 
   String classFieldName = '';
+
+  final LibraryReader library;
 
   @override
   void visitClassElement(ClassElement element) {
@@ -47,18 +51,28 @@ class _Visitor extends GeneralizingElementVisitor {
           stateType.element.source.uri.path.replaceAll('lib/', '');
       classFieldName =
           '_${className[0].toLowerCase()}${className.substring(1)}';
+      final List<String> imports = [
+        'import \'package:rxdart/rxdart.dart\';',
+        'import \'package:ayanami/ayanami.dart\' as ayanami;',
+        'import \'package:flutter/widgets.dart\';',
+        'import \'package:$stateTypeImportPath\';',
+        'import \'${element.source.uri.pathSegments.last}\';',
+        'export \'${element.source.uri.pathSegments.last}\';'
+      ];
+      imports.addAll(library.element.imports
+          .where(
+              (import) => import.importedLibrary.source.uri.path.contains('/'))
+          .map((import) {
+        return 'import \'package:${import.importedLibrary.source.uri.path.replaceAll('lib/', '')}\';';
+      }).toList());
+      final unionImports = imports.toSet().toList();
       result += '''
-import 'package:rxdart/rxdart.dart';
-import 'package:ayanami/ayanami.dart';
-import 'package:flutter/widgets.dart';
-import 'package:$stateTypeImportPath';
-import '${element.source.uri.pathSegments.last}';
-export '${element.source.uri.pathSegments.last}';
+${unionImports.join('\n')}
 
 class ${className}Connector {
   static State<W> createAppState<W extends StatefulWidget>(
       State<W> Function(${className}Connector connector) builder) {
-    return Module.createAppState<W, $className>((state) => builder(${className}Connector(state)));
+    return ayanami.Module.createAppState<W, $className>((state) => builder(${className}Connector(state)));
   }
 
   final $className $classFieldName;
@@ -98,8 +112,8 @@ class ${className}Connector {
           payloadType = 'dynamic';
         }
         final methodCodes = payloadType == null
-            ? 'void $name() { $classFieldName.action\$.add(Action(\'$name\', null)); }'
-            : 'void $name($payloadType payload) { $classFieldName.action\$.add(Action(\'$name\', payload)); }';
+            ? 'void $name() { $classFieldName.action\$.add(ayanami.Action(\'$name\', null)); }'
+            : 'void $name($payloadType payload) { $classFieldName.action\$.add(ayanami.Action(\'$name\', payload)); }';
         result += '\n$methodCodes\n';
 
         actions +=
@@ -127,8 +141,8 @@ class ${className}Connector {
           payloadType = 'dynamic';
         }
         final methodCodes = payloadType == null
-            ? 'void $name () { $classFieldName.action\$.add(Action(\'$name\', null)); }'
-            : 'void $name ($payloadType payload) { $classFieldName.action\$.add(Action(\'$name\', payload)); }';
+            ? 'void $name () { $classFieldName.action\$.add(ayanami.Action(\'$name\', null)); }'
+            : 'void $name ($payloadType payload) { $classFieldName.action\$.add(ayanami.Action(\'$name\', payload)); }';
         result += methodCodes;
 
         epics +=

@@ -1,6 +1,6 @@
 import 'package:angel_container_generator/angel_container_generator.dart';
 import 'package:angel_container/angel_container.dart' as angel_container;
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart' as widget;
 import 'package:rxdart/rxdart.dart';
 import 'action.dart';
 
@@ -16,9 +16,10 @@ abstract class Module<S> {
     return container;
   }
 
-  static State<W> createAppState<W extends StatefulWidget, M extends Module>(
-      State<W> Function(M ayanamiState) builder,
-      {bool singleton = true}) {
+  static widget.State<W>
+      createAppState<W extends widget.StatefulWidget, M extends Module>(
+          widget.State<W> Function(M ayanamiState) builder,
+          {bool singleton = true}) {
     final hasSingleton = _container.has(M);
     final instance = _container.make(M);
     if (!hasSingleton && singleton) {
@@ -34,10 +35,14 @@ abstract class Module<S> {
 
   final Subject<Action> state$ = PublishSubject();
 
-  State _appState;
+  widget.State _appState;
+
+  widget.State get appState {
+    return _appState;
+  }
 
   Observable<S> setState(SetState setter) {
-    return Observable.fromFuture(WidgetsBinding.instance.endOfFrame)
+    return Observable.fromFuture(widget.WidgetsBinding.instance.endOfFrame)
         .doOnData((_) {
       if (_appState.mounted) {
         // ignore: invalid_use_of_protected_member
