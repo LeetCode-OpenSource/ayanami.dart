@@ -16,8 +16,7 @@ class TestModule {
     return this;
   }
 
-  TestModule registerSingleton(Type T,
-      {void Function(dynamic instance) getter}) {
+  TestModule registerSingleton<T>({void Function(T instance) getter}) {
     final registered = _container.has(T);
     final instance = _container.make(T);
     if (!registered) {
