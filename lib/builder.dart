@@ -33,7 +33,7 @@ class _Visitor extends GeneralizingElementVisitor {
 
   String result = '';
 
-  String epics = '';
+  final List<EpicMeta> epics = [];
 
   String actions = '';
 
@@ -59,13 +59,15 @@ class _Visitor extends GeneralizingElementVisitor {
         'import \'${element.source.uri.pathSegments.last}\';',
         'export \'${element.source.uri.pathSegments.last}\';'
       ];
-      imports.addAll(library.element.imports
-          .where(
-              (import) => import.importedLibrary.source.uri.path.contains('/'))
+      final thirdPartImports = library.element.imports
+          .where((import) =>
+              import.importedLibrary.source != null &&
+              import.importedLibrary.source.uri.path.contains('/'))
           .map((import) {
         return 'import \'package:${import.importedLibrary.source.uri.path.replaceAll('lib/', '')}\';';
-      }).toList());
-      final unionImports = imports.toSet().toList();
+      }).toList();
+      thirdPartImports.addAll(imports);
+      final unionImports = thirdPartImports.toSet().toList();
       result += '''
 ${unionImports.join('\n')}
 
@@ -83,11 +85,27 @@ class ${className}Connector {
 
       ''';
       element.visitChildren(this);
+      final listenedEpics = epics
+          .map((meta) =>
+              '$classFieldName.${meta.actionName}(${meta.action}.map((action) => action.payload))')
+          .join(',\n');
+
+      final addActionsMap = epics
+          .map((meta) =>
+              '$classFieldName.actions[$classFieldName.${meta.actionName}] = \'${meta.actionName}\';')
+          .join('\n');
       result += '''
- 
+
     ${className}Connector(this.$classFieldName) {
       $actions;
-      Observable.merge([$epics]).listen((_) {});
+
+      $addActionsMap
+
+      Observable.merge([$listenedEpics]).listen((action) {
+        if (action.type == ayanami.DispatchSymbol) {
+          $classFieldName.action\$.add(action.dispatchAction);
+        }
+      });
     }
 }
       ''';
@@ -118,6 +136,12 @@ class ${className}Connector {
 
         actions +=
             '$classFieldName.$name = $classFieldName.action\$.where((action) => action.type == \'$name\')';
+
+        final meta = EpicMeta(
+            '$classFieldName.action\$.where((action) => action.type == \'$name\')',
+            name,
+            payloadType);
+        epics.add(meta);
       }
     }
   }
@@ -144,14 +168,26 @@ class ${className}Connector {
             ? 'void $name () { $classFieldName.action\$.add(ayanami.Action(\'$name\', null)); }'
             : 'void $name ($payloadType payload) { $classFieldName.action\$.add(ayanami.Action(\'$name\', payload)); }';
         result += methodCodes;
-
-        epics +=
-            '$classFieldName.$name($classFieldName.action\$.where((action) => action.type == \'$name\').map((action) => action.payload)),';
+        final meta = EpicMeta(
+            '$classFieldName.action\$.where((action) => action.type == \'$name\')',
+            name,
+            payloadType);
+        epics.add(meta);
       } else {
         throw ModuleGenerateError('first parameter of epic must be Observable');
       }
     }
   }
+}
+
+class EpicMeta {
+  EpicMeta(this.action, this.actionName, this.payloadType);
+
+  final String action;
+
+  final String actionName;
+
+  final String payloadType;
 }
 
 class ModuleGenerateError extends Error {

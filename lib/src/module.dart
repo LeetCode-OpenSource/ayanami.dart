@@ -5,6 +5,8 @@ import 'package:rxdart/rxdart.dart';
 import 'action.dart';
 
 typedef SetState = void Function();
+typedef Epic<S, T> = Observable<EpicEndAction<S, T>> Function(
+    Observable<T> payload$);
 
 abstract class Module<S> {
   static angel_container.Container _container;
@@ -31,6 +33,8 @@ abstract class Module<S> {
 
   S get state;
 
+  final Map<Function, String> actions = {};
+
   final Subject<Action> action$ = PublishSubject();
 
   final Subject<Action> state$ = PublishSubject();
@@ -41,18 +45,33 @@ abstract class Module<S> {
     return _appState;
   }
 
-  Observable<S> setState(SetState setter) {
+  EpicEndAction<S, T> Function(T payload) createAction<T>(Epic<S, T> method) {
+    final actionName = actions[method];
+    return (T payload) => EpicEndAction(DispatchSymbol,
+        dispatchAction: Action(actionName, payload));
+  }
+
+  Observable<EpicEndAction<S, Null>> setState(SetState setter) {
     return Observable.fromFuture(widget.WidgetsBinding.instance.endOfFrame)
         .doOnData((_) {
       if (_appState.mounted) {
         // ignore: invalid_use_of_protected_member
         _appState.setState(setter);
       }
-    }).map((_) => state);
+    }).map((_) => EpicEndAction(SetStateSymbol, state: state));
   }
 
   Future<Null> dispose() async {
     await action$.close();
     await state$.close();
   }
+}
+
+class EpicEndAction<S, T> extends Action<Null> {
+  EpicEndAction(String type, {this.dispatchAction, this.state})
+      : super(type, null);
+
+  final Action<T> dispatchAction;
+
+  final S state;
 }
