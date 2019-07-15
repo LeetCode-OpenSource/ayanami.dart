@@ -23,11 +23,12 @@ abstract class Module<S> {
           widget.State<W> Function(M ayanamiState) builder,
           {bool singleton = true}) {
     final hasSingleton = _container.has(M);
-    final instance = _container.make(M);
+    final M instance = _container.make(M);
     if (!hasSingleton && singleton) {
       _container.registerSingleton(instance, as: M);
     }
     instance._appState = builder(instance);
+    instance.state$.add(instance.state);
     return instance._appState;
   }
 
@@ -37,7 +38,7 @@ abstract class Module<S> {
 
   final Subject<Action> action$ = PublishSubject();
 
-  final Subject<Action> state$ = PublishSubject();
+  final Subject<S> state$ = BehaviorSubject();
 
   widget.State _appState;
 
@@ -51,12 +52,18 @@ abstract class Module<S> {
         dispatchAction: Action(actionName, payload));
   }
 
+  Observable<Action<T>> ofMethod<T>(Epic<S, T> method) {
+    final actionName = actions[method];
+    return action$.where((a) => a.type == actionName).cast<Action<T>>();
+  }
+
   Observable<EpicEndAction<S, Null>> setState(SetState setter) {
     return Observable.fromFuture(widget.WidgetsBinding.instance.endOfFrame)
         .doOnData((_) {
       if (_appState.mounted) {
         // ignore: invalid_use_of_protected_member
         _appState.setState(setter);
+        state$.add(state);
       }
     }).map((_) => EpicEndAction(SetStateSymbol, state: state));
   }
