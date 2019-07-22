@@ -73,8 +73,8 @@ ${unionImports.join('\n')}
 
 class ${className}Connector {
   static State<W> createAppState<W extends StatefulWidget>(
-      State<W> Function(${className}Connector connector) builder) {
-    return ayanami.Module.createAppState<W, $className>((state) => builder(${className}Connector(state)));
+      State<W> Function(${className}Connector connector) builder, {bool singleton = true}) {
+    return ayanami.Module.createAppState<W, $className>((state) => builder(${className}Connector(state)), singleton: singleton);
   }
 
   final $className $classFieldName;
