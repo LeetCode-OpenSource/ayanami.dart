@@ -5,7 +5,7 @@ import 'package:rxdart/rxdart.dart';
 import 'action.dart';
 
 typedef SetState = void Function();
-typedef Epic<S, T> = Observable<EpicEndAction<S, T>> Function(
+typedef Epic<S, T> = Observable<EpicEndAction<S>> Function(
     Observable<T> payload$);
 
 abstract class Module<S> {
@@ -46,7 +46,7 @@ abstract class Module<S> {
     return _appState;
   }
 
-  EpicEndAction<S, T> Function(T payload) createAction<T>(Epic<S, T> method) {
+  EpicEndAction<S> Function(T payload) createAction<T>(Epic<S, T> method) {
     final actionName = actions[method];
     return (T payload) => EpicEndAction(DispatchSymbol,
         dispatchAction: Action(actionName, payload));
@@ -57,7 +57,7 @@ abstract class Module<S> {
     return action$.where((a) => a.type == actionName).cast<Action<T>>();
   }
 
-  Observable<EpicEndAction<S, Null>> setState(SetState setter) {
+  Observable<EpicEndAction<S>> setState(SetState setter) {
     return Observable.fromFuture(widget.WidgetsBinding.instance.endOfFrame)
         .doOnData((_) {
       if (_appState.mounted) {
@@ -74,11 +74,11 @@ abstract class Module<S> {
   }
 }
 
-class EpicEndAction<S, T> extends Action<Null> {
+class EpicEndAction<S> extends Action<Null> {
   EpicEndAction(String type, {this.dispatchAction, this.state})
       : super(type, null);
 
-  final Action<T> dispatchAction;
+  final Action<dynamic> dispatchAction;
 
   final S state;
 }
