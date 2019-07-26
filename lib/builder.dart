@@ -72,9 +72,20 @@ class _Visitor extends GeneralizingElementVisitor {
 ${unionImports.join('\n')}
 
 class ${className}Connector {
+  static ${className}Connector _instance;
+
   static State<W> createAppState<W extends StatefulWidget>(
       State<W> Function(${className}Connector connector) builder, {bool singleton = true}) {
-    return ayanami.Module.createAppState<W, $className>((state) => builder(${className}Connector(state)), singleton: singleton);
+        if (singleton && _instance != null) {
+          return ayanami.Module.createAppState<W, $className>((state) => builder(_instance), singleton: singleton);
+        }
+    return ayanami.Module.createAppState<W, $className>((state) {
+      final instance = ${className}Connector(state);
+      if (singleton) {
+        _instance = instance;
+      }
+      return builder(instance);
+    }, singleton: singleton);
   }
 
   final $className $classFieldName;
