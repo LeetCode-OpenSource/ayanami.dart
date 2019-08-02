@@ -103,7 +103,7 @@ class ${className}Connector {
 
       final addActionsMap = epics
           .map((meta) =>
-              '$classFieldName.actions[$classFieldName.${meta.actionName}] = \'${meta.actionName}\';')
+              '$classFieldName.actions[$classFieldName.${meta.actionName}] = r\'${meta.actionName}\';')
           .join('\n');
       result += '''
 
@@ -141,18 +141,12 @@ class ${className}Connector {
           payloadType = 'dynamic';
         }
         final methodCodes = payloadType == null
-            ? 'void $name() { $classFieldName.action\$.add(ayanami.Action(\'$name\', null)); }'
+            ? 'void $name() { $classFieldName.action\$.add(ayanami.Action(r\'$name\', null)); }'
             : 'void $name($payloadType payload) { $classFieldName.action\$.add(ayanami.Action(\'$name\', payload)); }';
         result += '\n$methodCodes\n';
 
         actions +=
-            '$classFieldName.$name = $classFieldName.action\$.where((action) => action.type == \'$name\')';
-
-        final meta = EpicMeta(
-            '$classFieldName.action\$.where((action) => action.type == \'$name\')',
-            name,
-            payloadType);
-        epics.add(meta);
+            '$classFieldName.$name = $classFieldName.action\$.where((action) => action.type == r\'$name\')';
       }
     }
   }
@@ -180,7 +174,7 @@ class ${className}Connector {
             : 'void $name ($payloadType payload) { $classFieldName.action\$.add(ayanami.Action(\'$name\', payload)); }';
         result += methodCodes;
         final meta = EpicMeta(
-            '$classFieldName.action\$.where((action) => action.type == \'$name\')',
+            '$classFieldName.action\$.where((action) => action.type == r\'$name\')',
             name,
             payloadType);
         epics.add(meta);
@@ -192,7 +186,11 @@ class ${className}Connector {
 }
 
 class EpicMeta {
-  EpicMeta(this.action, this.actionName, this.payloadType);
+  EpicMeta(
+    this.action,
+    this.actionName,
+    this.payloadType,
+  );
 
   final String action;
 
