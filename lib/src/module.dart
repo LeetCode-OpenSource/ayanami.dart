@@ -24,7 +24,7 @@ abstract class Module<S> {
           {bool singleton = true}) {
     final hasSingleton = _container.has(M);
     final M instance = _container.make(M);
-    if (instance._appState != null) {
+    if (instance._appState != null && instance._appState.mounted) {
       throw ErrorAndStacktrace(
           'Cannot connect multi AppState to One module', StackTrace.current);
     }

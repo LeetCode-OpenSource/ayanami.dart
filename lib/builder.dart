@@ -145,8 +145,11 @@ class ${className}Connector {
             : 'void $name($payloadType payload) { $classFieldName.action\$.add(ayanami.Action(\'$name\', payload)); }';
         result += '\n$methodCodes\n';
 
-        actions +=
-            '$classFieldName.$name = $classFieldName.action\$.where((action) => action.type == r\'$name\')';
+        actions += '''
+              $classFieldName.$name = $classFieldName.action\$
+                .where((action) => action.type == r\'$name\')
+                .map((action) => action.payload as ${payloadType == null ? Null : payloadType})
+            ''';
       }
     }
   }
