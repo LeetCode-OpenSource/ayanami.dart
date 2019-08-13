@@ -63,13 +63,21 @@ abstract class Module<S> {
 
   Observable<EpicEndAction<S>> setState(SetState setter) {
     return Observable.fromFuture(widget.WidgetsBinding.instance.endOfFrame)
-        .doOnData((_) {
-      if (_appState.mounted) {
-        // ignore: invalid_use_of_protected_member
-        _appState.setState(setter);
-        state$.add(state);
-      }
-    }).map((_) => EpicEndAction(SetStateSymbol, state: state));
+        .doOnData(
+      (_) {
+        if (_appState.mounted) {
+          // ignore: invalid_use_of_protected_member
+          _appState.setState(setter);
+          state$.add(state);
+        } else {
+          state$.add(state);
+          // widget disposed, no need setState to rerender, just do state sideEffects
+          setter();
+        }
+      },
+    ).map(
+      (_) => EpicEndAction(SetStateSymbol, state: state),
+    );
   }
 
   Future<Null> dispose() async {
