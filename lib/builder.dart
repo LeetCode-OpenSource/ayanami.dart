@@ -114,7 +114,7 @@ class ${className}Connector {
 
       Observable.merge([$listenedEpics]).listen((action) {
         if (action.type == ayanami.DispatchSymbol) {
-          $classFieldName.action\$.add(action.dispatchAction);
+          action.module.action\$.add(action.dispatchAction);
         }
       });
     }

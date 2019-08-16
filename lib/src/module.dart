@@ -53,7 +53,7 @@ abstract class Module<S> {
   EpicEndAction<S> Function(T payload) createAction<T>(Epic<S, T> method) {
     final actionName = actions[method];
     return (T payload) => EpicEndAction(DispatchSymbol,
-        dispatchAction: Action(actionName, payload));
+        dispatchAction: Action(actionName, payload), module: this);
   }
 
   Observable<Action<T>> ofMethod<T>(Epic<S, T> method) {
@@ -76,7 +76,7 @@ abstract class Module<S> {
         }
       },
     ).map(
-      (_) => EpicEndAction(SetStateSymbol, state: state),
+      (_) => EpicEndAction(SetStateSymbol, module: this),
     );
   }
 
@@ -87,10 +87,10 @@ abstract class Module<S> {
 }
 
 class EpicEndAction<S> extends Action<Null> {
-  EpicEndAction(String type, {this.dispatchAction, this.state})
+  EpicEndAction(String type, {this.dispatchAction, this.module})
       : super(type, null);
 
   final Action<dynamic> dispatchAction;
 
-  final S state;
+  final Module<S> module;
 }
