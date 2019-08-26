@@ -50,7 +50,9 @@ abstract class Module<S> {
     return _appState;
   }
 
-  EpicEndAction<S> Function(T payload) createAction<T>(Epic<S, T> method) {
+  EpicEndAction<S> Function(T payload) createAction<T>(
+    Epic<dynamic, T> method,
+  ) {
     final actionName = actions[method];
     return (T payload) => EpicEndAction(DispatchSymbol,
         dispatchAction: Action(actionName, payload), module: this);
