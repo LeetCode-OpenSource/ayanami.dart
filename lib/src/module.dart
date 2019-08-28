@@ -58,6 +58,10 @@ abstract class Module<S> {
         dispatchAction: Action(actionName, payload), module: this);
   }
 
+  EpicEndAction<S> createNoopAction() {
+    return EpicEndAction('__noop__', module: this);
+  }
+
   Observable<Action<T>> ofMethod<T>(Epic<S, T> method) {
     final actionName = actions[method];
     return action$.where((a) => a.type == actionName).cast<Action<T>>();

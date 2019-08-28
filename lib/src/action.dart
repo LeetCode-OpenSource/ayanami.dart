@@ -6,5 +6,3 @@ class Action<T> {
   final String type;
   final T payload;
 }
-
-const noopAction = const Action('__noop__', null);
