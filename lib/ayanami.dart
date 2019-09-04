@@ -10,3 +10,4 @@ export 'src/module.dart';
 const epic = EpicAnnotation();
 const module = ModuleAnnotation();
 const action = ActionAnnotation();
+const singleton = const SingletonContainedReflectable();

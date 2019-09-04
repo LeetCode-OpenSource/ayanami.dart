@@ -56,8 +56,8 @@ class _Visitor extends GeneralizingElementVisitor {
         'import \'package:ayanami/ayanami.dart\' as ayanami;',
         'import \'package:flutter/widgets.dart\';',
         'import \'package:$stateTypeImportPath\';',
-        'import \'${element.source.uri.pathSegments.last}\';',
-        'export \'${element.source.uri.pathSegments.last}\';'
+        'import \'${element.source.uri}\';',
+        'export \'${element.source.uri}\';'
       ];
       final thirdPartImports = library.element.imports
           .where((import) =>

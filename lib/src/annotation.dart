@@ -9,3 +9,7 @@ class EpicAnnotation {
 class ActionAnnotation {
   const ActionAnnotation();
 }
+
+class SingletonContainedReflectable {
+  const SingletonContainedReflectable();
+}
