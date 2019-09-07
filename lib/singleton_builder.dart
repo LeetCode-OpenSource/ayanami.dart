@@ -40,6 +40,8 @@ class _SingletonBuilder extends Builder {
             lib.source.uri.scheme == inputLib.source.uri.scheme &&
             lib.source.uri.pathSegments.first ==
                 inputLib.source.uri.pathSegments.first)
+        .toSet()
+        .toList()
         .forEach((lib) {
       final genterated = _generate(LibraryReader(lib));
       if (genterated) {
