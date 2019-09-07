@@ -3,7 +3,7 @@ description: State management with rxdart
 homepage: https://github.com/LeetCode-OpenSource/ayanami.dart
 author: LongYinan <lynweklm@gmail.com>
 
-version: 0.1.0
+version: 0.1.1
 
 environment:
   sdk: ">=2.1.0 <3.0.0"

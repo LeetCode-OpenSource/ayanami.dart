@@ -49,6 +49,7 @@ class _Visitor extends GeneralizingElementVisitor {
       final stateType = element.supertype.typeArguments[0];
       final stateTypeImportPath =
           stateType.element.source.uri.path.replaceAll('lib/', '');
+
       classFieldName =
           '_${className[0].toLowerCase()}${className.substring(1)}';
       final List<String> imports = [
@@ -61,7 +62,7 @@ class _Visitor extends GeneralizingElementVisitor {
       ];
       final thirdPartImports = library.element.imports
           .where((import) =>
-              import.importedLibrary.source != null &&
+              import.importedLibrary?.source != null &&
               import.importedLibrary.source.uri.path.contains('/'))
           .map((import) {
         return 'import \'package:${import.importedLibrary.source.uri.path.replaceAll('lib/', '')}\';';
