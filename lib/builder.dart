@@ -47,30 +47,12 @@ class _Visitor extends GeneralizingElementVisitor {
         m.computeConstantValue().type))) {
       final className = element.name;
       final stateType = element.supertype.typeArguments[0];
-      final stateTypeImportPath =
-          stateType.element.source.uri.path.replaceAll('lib/', '');
-
       classFieldName =
           '_${className[0].toLowerCase()}${className.substring(1)}';
-      final List<String> imports = [
-        'import \'package:rxdart/rxdart.dart\';',
-        'import \'package:ayanami/ayanami.dart\' as ayanami;',
-        'import \'package:flutter/widgets.dart\';',
-        'import \'package:$stateTypeImportPath\';',
-        'import \'${element.source.uri}\';',
-        'export \'${element.source.uri}\';'
-      ];
-      final thirdPartImports = library.element.imports
-          .where((import) =>
-              import.importedLibrary?.source != null &&
-              import.importedLibrary.source.uri.path.contains('/'))
-          .map((import) {
-        return 'import \'package:${import.importedLibrary.source.uri.path.replaceAll('lib/', '')}\';';
-      }).toList();
-      thirdPartImports.addAll(imports);
-      final unionImports = thirdPartImports.toSet().toList();
+      final stateTypeImportPath =
+          stateType.element.source.uri.pathSegments.last;
       result += '''
-${unionImports.join('\n')}
+part of \'$stateTypeImportPath\';
 
 class ${className}Connector {
   static ${className}Connector _instance;
@@ -78,9 +60,9 @@ class ${className}Connector {
   static State<W> createAppState<W extends StatefulWidget>(
       State<W> Function(${className}Connector connector) builder, {bool singleton = true}) {
         if (singleton && _instance != null) {
-          return ayanami.Module.createAppState<W, $className>((state) => builder(_instance), singleton: singleton);
+          return Module.createAppState<W, $className>((state) => builder(_instance), singleton: singleton);
         }
-    return ayanami.Module.createAppState<W, $className>((state) {
+    return Module.createAppState<W, $className>((state) {
       final instance = ${className}Connector(state);
       if (singleton) {
         _instance = instance;
@@ -114,7 +96,7 @@ class ${className}Connector {
       $addActionsMap
 
       Observable.merge([$listenedEpics]).listen((action) {
-        if (action.type == ayanami.DispatchSymbol) {
+        if (action.type == DispatchSymbol) {
           action.module.action\$.add(action.dispatchAction);
         }
       });
@@ -142,8 +124,8 @@ class ${className}Connector {
           payloadType = 'dynamic';
         }
         final methodCodes = payloadType == null
-            ? 'void $name() { $classFieldName.action\$.add(ayanami.Action(r\'$name\', null)); }'
-            : 'void $name($payloadType payload) { $classFieldName.action\$.add(ayanami.Action(\'$name\', payload)); }';
+            ? 'void $name() { $classFieldName.action\$.add(AyanamiAction(r\'$name\', null)); }'
+            : 'void $name($payloadType payload) { $classFieldName.action\$.add(AyanamiAction(\'$name\', payload)); }';
         result += '\n$methodCodes\n';
 
         actions += '''
@@ -174,8 +156,8 @@ class ${className}Connector {
           payloadType = 'dynamic';
         }
         final methodCodes = payloadType == null
-            ? 'void $name () { $classFieldName.action\$.add(ayanami.Action(\'$name\', null)); }'
-            : 'void $name ($payloadType payload) { $classFieldName.action\$.add(ayanami.Action(\'$name\', payload)); }';
+            ? 'void $name () { $classFieldName.action\$.add(AyanamiAction(\'$name\', null)); }'
+            : 'void $name ($payloadType payload) { $classFieldName.action\$.add(AyanamiAction(\'$name\', payload)); }';
         result += methodCodes;
         final meta = EpicMeta(
             '$classFieldName.action\$.where((action) => action.type == r\'$name\')',

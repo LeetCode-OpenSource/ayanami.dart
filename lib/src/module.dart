@@ -43,7 +43,7 @@ abstract class Module<S> {
 
   final Map<Function, String> actions = {};
 
-  final Subject<Action> action$ = PublishSubject();
+  final Subject<AyanamiAction> action$ = PublishSubject();
 
   final Subject<S> state$ = BehaviorSubject();
 
@@ -58,16 +58,16 @@ abstract class Module<S> {
   ) {
     final actionName = actions[method];
     return (T payload) => EpicEndAction(DispatchSymbol,
-        dispatchAction: Action(actionName, payload), module: this);
+        dispatchAction: AyanamiAction(actionName, payload), module: this);
   }
 
   EpicEndAction<S> createNoopAction() {
     return EpicEndAction('__noop__', module: this);
   }
 
-  Observable<Action<T>> ofMethod<T>(Epic<S, T> method) {
+  Observable<AyanamiAction<T>> ofMethod<T>(Epic<S, T> method) {
     final actionName = actions[method];
-    return action$.where((a) => a.type == actionName).cast<Action<T>>();
+    return action$.where((a) => a.type == actionName).cast<AyanamiAction<T>>();
   }
 
   Observable<EpicEndAction<S>> setState(SetState setter) {
@@ -95,11 +95,11 @@ abstract class Module<S> {
   }
 }
 
-class EpicEndAction<S> extends Action<Null> {
+class EpicEndAction<S> extends AyanamiAction<Null> {
   EpicEndAction(String type, {this.dispatchAction, this.module})
       : super(type, null);
 
-  final Action<dynamic> dispatchAction;
+  final AyanamiAction<dynamic> dispatchAction;
 
   final Module<S> module;
 }

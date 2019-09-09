@@ -7,9 +7,9 @@ builders:
       .module.dart: 
         - .m.dart
     build_to: source
-    auto_apply: "all_packages"
+    auto_apply: root_package
     runs_before:
-      - reflectable
+      - reflectable|reflectable
   singleton:
     import: "package:ayanami/singleton_builder.dart"
     builder_factories:
